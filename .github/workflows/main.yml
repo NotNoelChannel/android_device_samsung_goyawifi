@@ -34,12 +34,9 @@ jobs:
     - name: Applying patches
       run: |
        cd ~/TWRP/device/samsung/goya-common/patches
-       patch < 4df9c5f8993eb51ea40d9aeb57a0a6c9842d5601.patch
        patch < PATCH-Do-not-abort-on-additional-SYSTEMSERVERCLASSPA.patch
        patch < PATCH-Fix-TWRP-on-CM-12.1.patch
        patch < PATCH-build-Add-option-to-disable-block-based-ota.patch
-       patch < ab8345562d3adc2a8d246cdff3e242e9539721cc.patch
-       patch < e36f0ea196ee403c9eda495ee3df5bc50b32bf5c.patch
     - name: Building Lineage Recovery
       run: |
         OLDPATH=$PATH
