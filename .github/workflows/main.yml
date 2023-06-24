@@ -33,7 +33,7 @@ jobs:
         python3 ~/.bin/repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all)
     - name: Applying patches and patching the sources
       run: |
-       source .repo/local_manifests/potf.sh
+       source .repo/local_manifests/potf_goya.sh
        rm -rf .repo
        cd ~/TWRP/device/samsung/goya-common/patches
        patch < 4df9c5f8993eb51ea40d9aeb57a0a6c9842d5601.patch
