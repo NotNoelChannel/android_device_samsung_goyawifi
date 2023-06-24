@@ -31,10 +31,8 @@ jobs:
         python3 ~/.bin/repo init --depth=1 -u https://github.com/CyanogenMod/android -b cm-12.1
         git clone https://github.com/samsung-goya/android_platform_manifest.git .repo/local_manifests
         python3 ~/.bin/repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all)
-    - name: Applying patches and patching the sources
+    - name: Applying patches
       run: |
-       bash .repo/local_manifests/potf_goya.sh
-       rm -rf .repo
        cd ~/TWRP/device/samsung/goya-common/patches
        patch < 4df9c5f8993eb51ea40d9aeb57a0a6c9842d5601.patch
        patch < PATCH-Do-not-abort-on-additional-SYSTEMSERVERCLASSPA.patch
