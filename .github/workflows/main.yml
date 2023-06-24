@@ -1,0 +1,65 @@
+name: LineageOS Recovery CI
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    name: TWRP Build CI
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+    env:
+      OEM: samsung
+      DEVICE: goyawifi
+    steps:
+    - uses: actions/checkout@v2
+    - name: Installing JDK 7 + Build Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install bc axel bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+        mkdir ~/.jdk_7
+        cd ~/.jdk_7
+        axel -q -n $(nproc --all) https://download.java.net/openjdk/jdk7u75/ri/openjdk-7u75-b13-linux-x64-18_dec_2014.tar.gz
+        tar -xzf openjdk-7u75-b13-linux-x64-18_dec_2014.tar.gz
+        sudo ln -f -s /usr/bin/python2.7 /usr/bin/python
+    - name: Syncing LineageOS sources
+      run: |
+        mkdir ~/TWRP
+        cd ~/TWRP
+        mkdir ~/.bin
+        curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
+        python3 ~/.bin/repo init --depth=1 -u https://github.com/CyanogenMod/android -b cm-12.1
+        git clone https://github.com/samsung-goya/android_platform_manifest.git .repo/local_manifests
+        python3 ~/.bin/repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all)
+    - name: Applying patches and patching the sources
+      run: |
+       source .repo/local_manifests/potf.sh
+       rm -rf .repo
+       cd ~/TWRP/device/samsung/goya-common/patches
+       patch < 4df9c5f8993eb51ea40d9aeb57a0a6c9842d5601.patch
+       patch < PATCH-Do-not-abort-on-additional-SYSTEMSERVERCLASSPA.patch
+       patch < PATCH-Fix-TWRP-on-CM-12.1.patch
+       patch < PATCH-build-Add-option-to-disable-block-based-ota.patch
+       patch < ab8345562d3adc2a8d246cdff3e242e9539721cc.patch
+       patch < e36f0ea196ee403c9eda495ee3df5bc50b32bf5c.patch
+    - name: Building Lineage Recovery
+      run: |
+        OLDPATH=$PATH
+        OLDJAVAHOME=$JAVA_HOME
+        export PATH="$HOME/.jdk_7/java-se-7u75-ri/bin:$PATH"
+        export JAVA_HOME="$HOME/.jdk_7/java-se-7u75-ri"
+        cd ~/TWRP
+        rm -rf ~/TWRP/build
+        git clone https://github.com/NotNoelChannel/android_build -b cm-12.1 ~/TWRP/build
+        source build/envsetup.sh
+        export ALLOW_MISSING_DEPENDENCIES=true
+        export LC_ALL=C
+        lunch cm_goyawifi-eng
+        make -j$(nproc --all) recoveryimage
+        export PATH=$OLDPATH
+        export JAVA_HOME=$OLDJAVAHOME
+    - name: Uploading LineageRecovery builds
+      uses: actions/upload-artifact@v2
+      with:
+        name: goya
+        path: /home/runner/TWRP/out/target/product/goyawifi/recovery.img
