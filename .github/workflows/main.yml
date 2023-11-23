@@ -31,7 +31,7 @@ jobs:
         mkdir ~/.bin
         curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
         python3 ~/.bin/repo init --depth=1 -u https://github.com/CyanogenMod/android -b cm-12.1
-        git clone https://github.com/samsung-goya/android_device_samsung_goyawifi -b cm-11.0 ~/TWRP/device/samsung/goyawifi
+        git clone https://github.com/NotNoelChannel/android_device_samsung_goyawifi -b cm-12.1 ~/TWRP/device/samsung/goyawifi
         git clone https://github.com/samsung-goya/android_device_samsung_goya3g -b cm-11.0 ~/TWRP/device/samsung/goya3g
         git clone https://github.com/NotNoelChannel/android_device_samsung_goya-common -b cm-12.1 ~/TWRP/device/samsung/goya-common
         git clone https://github.com/T110-android/android_vendor_samsung_goya -b cm-11.0 ~/TWRP/vendor/samsung/goya
@@ -50,12 +50,10 @@ jobs:
         rm -rf ~/TWRP/bootable/recovery
         rm -rf ~/TWRP/hardware/libhardware
         rm -rf ~/TWRP/hardware/libhardware_legacy
-        rm -rf ~/TWRP/external/sepolicy
         rm -rf ~/TWRP/build
         git clone https://github.com/T110-android/android_hardware_libhardware -b cm-11.0 ~/TWRP/hardware/libhardware
         git clone https://github.com/T110-android/android_hardware_libhardware_legacy -b cm-11.0 ~/TWRP/hardware/libhardware_legacy
         git clone https://github.com/NotNoelChannel/android_build -b cm-12.1 ~/TWRP/build
-        git clone https://github.com/LineageOS/android_external_sepolicy -b cm-12.0 ~/TWRP/external/sepolicy 
         git clone https://github.com/omnirom/android_bootable_recovery -b android-5.1 ~/TWRP/bootable/recovery
         source build/envsetup.sh
         export ALLOW_MISSING_DEPENDENCIES=true
