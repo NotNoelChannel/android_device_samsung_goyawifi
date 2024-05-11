@@ -1,4 +1,4 @@
-name: LineageOS CI
+name: CyanogenMod Recovery CI
 on:
   workflow_dispatch:
 jobs:
@@ -19,12 +19,29 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install bc axel python bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
-        mkdir ~/.jdk_7
-        cd ~/.jdk_7
+    - name: Installing Build Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install bc axel bison build-essential ccache curl flex g++-multilib gcc-multilib python python2 git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+        sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+        python -V
+    - name: Installing OpenJDK 7
+      run: |
         axel -q -n $(nproc --all) https://download.java.net/openjdk/jdk7u75/ri/openjdk-7u75-b13-linux-x64-18_dec_2014.tar.gz
-        tar -xzf openjdk-7u75-b13-linux-x64-18_dec_2014.tar.gz
-        sudo ln -f -s /usr/bin/python2.7 /usr/bin/python
-    - name: Syncing LineageOS sources
+        sudo mkdir -p /usr/local/java
+        sudo cp -r openjdk-7u75-b13-linux-x64-18_dec_2014.tar.gz /usr/local/java/
+        cd /usr/local/java
+        sudo tar xvzf openjdk-7u75-b13-linux-x64-18_dec_2014.tar.gz 
+        export JAVA_HOME=/usr/local/java/java-se-7u75-ri/
+        export JRE_HOME=/usr/local/java/java-se-7u75-ri/
+        export PATH=$PATH:/usr/local/java/java-se-7u75-ri/bin:/usr/local/java/java-se-7u75-ri/bin
+        sudo update-alternatives --install "/usr/bin/java" "java" "/usr/local/java/java-se-7u75-ri/bin/java" 1
+        sudo update-alternatives --install "/usr/bin/javac" "javac" "/usr/local/java/java-se-7u75-ri/bin/javac" 1
+        sudo update-alternatives --install "/usr/bin/jar" "jar" "/usr/local/java/java-se-7u75-ri/bin/jar" 1
+        sudo update-alternatives --set java /usr/local/java/java-se-7u75-ri/bin/java
+        sudo update-alternatives --set javac /usr/local/java/java-se-7u75-ri/bin/javac
+        sudo update-alternatives --set jar /usr/local/java/java-se-7u75-ri/bin/jar
+    - name: Syncing CyanogenMod sources
       run: |
         mkdir ~/TWRP
         cd ~/TWRP
@@ -40,7 +57,7 @@ jobs:
         git clone https://github.com/T110-android/android_hardware_marvell -b cm-11.0 ~/TWRP/hardware/marvell
         git clone https://github.com/T110-android/android_vendor_marvell_external -b cm-11.0 ~/TWRP/vendor/marvell/external
         python3 ~/.bin/repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j$(nproc --all)
-    - name: Building Lineage Recovery
+    - name: Building CyanogenMod Recovery
       run: |
         OLDPATH=$PATH
         OLDJAVAHOME=$JAVA_HOME
@@ -54,16 +71,15 @@ jobs:
         git clone https://github.com/T110-android/android_hardware_libhardware -b cm-11.0 ~/TWRP/hardware/libhardware
         git clone https://github.com/T110-android/android_hardware_libhardware_legacy -b cm-11.0 ~/TWRP/hardware/libhardware_legacy
         git clone https://github.com/NotNoelChannel/android_build -b cm-12.1 ~/TWRP/build
-        git clone https://github.com/omnirom/android_bootable_recovery -b android-5.1 ~/TWRP/bootable/recovery
         source build/envsetup.sh
         export ALLOW_MISSING_DEPENDENCIES=true
         export LC_ALL=C
         lunch cm_goyawifi-eng
-        make -j$(nproc --all) otapackage
+        make -j$(nproc --all) recoveryimage
         export PATH=$OLDPATH
         export JAVA_HOME=$OLDJAVAHOME
-    - name: Uploading LineageRecovery builds
+    - name: Uploading CyanogenMod Recovery builds
       uses: actions/upload-artifact@v2
       with:
         name: goya
-        path: /home/runner/TWRP/out/target/product/goyawifi/*.zip
+        path: /home/runner/TWRP/out/target/product/goyawifi/recovery.*
