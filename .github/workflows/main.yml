@@ -1,4 +1,4 @@
-name: LineageOS Recovery CI
+name: TWRP Recovery CI
 on:
   workflow_dispatch:
 jobs:
